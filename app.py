@@ -18,12 +18,12 @@ def initialize_analyzer():
     """Initialize the sentiment analyzer"""
     global analyzer
     try:
-        print("🔄 Initializing Sentiment Analyzer...")
+        print("Initializing Sentiment Analyzer...")
         analyzer = SentimentAnalyzer()
-        print("✅ Sentiment Analyzer initialized successfully!")
+        print("Sentiment Analyzer initialized successfully!")
         return True
     except Exception as e:
-        print(f"❌ Failed to initialize analyzer: {e}")
+        print(f"Failed to initialize analyzer: {e}")
         return False
 
 @app.route('/')
@@ -172,18 +172,18 @@ def export_results():
         }), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Sentiment Analysis Web Application")
+    print("Starting Sentiment Analysis Web Application")
     print("=" * 70)
     
     # Initialize the analyzer
     if initialize_analyzer():
-        print("✅ Ready to analyze sentiment! (Positive, Negative, Neutral)")
-        print("🌐 Starting Flask server...")
-        print("📱 Access the web interface at: http://localhost:5001")
+        print("Ready to analyze sentiment! (Positive, Negative, Neutral)")
+        print("Starting Flask server...")
+        print("Access the web interface at: http://localhost:5001")
         print("-" * 70)
         app.run(debug=True, host='0.0.0.0', port=5001)
     else:
-        print("❌ Failed to initialize sentiment analyzer.")
+        print("Failed to initialize sentiment analyzer.")
         print("Please ensure all model files are present in the directory.")
         print("Required files:")
         print("- best_llm_model.obj")

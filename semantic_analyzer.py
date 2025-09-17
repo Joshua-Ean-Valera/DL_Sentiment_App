@@ -44,7 +44,7 @@ class SentimentAnalyzer:
     def load_models(self) -> bool:
         """Load all required model components"""
         try:
-            print("🔄 Loading Sentiment Analysis Models...")
+            print("Loading Sentiment Analysis Models...")
             
             # Define model file paths
             model_files = {
@@ -62,7 +62,7 @@ class SentimentAnalyzer:
                     try:
                         loaded_obj = joblib.load(filepath)
                         setattr(self, component, loaded_obj)
-                        print(f"✅ Loaded {component}: {type(loaded_obj).__name__}")
+                        print(f"Loaded {component}: {type(loaded_obj).__name__}")
                         
                         # Debug information
                         if component == 'model' and hasattr(loaded_obj, 'classes_'):
@@ -73,21 +73,21 @@ class SentimentAnalyzer:
                             print(f"   Metadata keys: {list(loaded_obj.keys())}")
                             
                     except Exception as e:
-                        print(f"⚠️  Error loading {component}: {e}")
+                        print(f"Error loading {component}: {e}")
                         continue
                 else:
-                    print(f"❌ File not found: {filepath}")
+                    print(f"File not found: {filepath}")
             
             # Verify models are loaded
             if self.model is not None:
-                print(f"✅ Sentiment model successfully loaded!")
+                print(f"Sentiment model successfully loaded!")
                 return True
             else:
-                print("❌ Failed to load main sentiment model")
+                print("Failed to load main sentiment model")
                 return False
                 
         except Exception as e:
-            print(f"❌ Error loading models: {e}")
+            print(f"Error loading models: {e}")
             return False
     
     def preprocess_text(self, text: str) -> str:
@@ -203,7 +203,7 @@ class SentimentAnalyzer:
             else:
                 return [text]
         except Exception as e:
-            print(f"⚠️  Tokenizer error: {e}")
+            print(f"Tokenizer error: {e}")
             return [text]
     
     def _map_probabilities_to_sentiment(self, probabilities) -> Dict[str, float]:
@@ -243,7 +243,7 @@ class SentimentAnalyzer:
             return sentiment_probs
             
         except Exception as e:
-            print(f"⚠️  Error mapping probabilities: {e}")
+            print(f"Error mapping probabilities: {e}")
             return {'negative': 0.33, 'neutral': 0.34, 'positive': 0.33}
     
     def _decode_prediction_to_sentiment(self, prediction) -> str:
@@ -289,7 +289,7 @@ class SentimentAnalyzer:
                 return 'neutral'
                 
         except Exception as e:
-            print(f"⚠️  Error decoding prediction: {e}")
+            print(f"Error decoding prediction: {e}")
             return 'neutral'
     
     def analyze_batch(self, texts: List[str]) -> List[Dict[str, Any]]:
@@ -304,14 +304,14 @@ class SentimentAnalyzer:
         """
         results = []
         
-        print(f"🔄 Analyzing sentiment of {len(texts)} texts...")
+        print(f"Analyzing sentiment of {len(texts)} texts...")
         
         for i, text in enumerate(texts):
             print(f"   Processing {i+1}/{len(texts)}")
             result = self.predict_sentiment(text)
             results.append(result)
         
-        print("✅ Batch sentiment analysis complete!")
+        print("Batch sentiment analysis complete!")
         return results
     
     def get_model_info(self) -> Dict[str, Any]:
@@ -387,7 +387,7 @@ class SentimentAnalyzer:
         with open(filepath, 'w', encoding='utf-8') as f:
             json.dump(export_data, f, indent=2, ensure_ascii=False)
         
-        print(f"📄 Sentiment analysis results exported to: {filepath}")
+        print(f"Sentiment analysis results exported to: {filepath}")
         return filepath
 
 
@@ -395,17 +395,17 @@ def main():
     """
     Main function to demonstrate the Sentiment Analyzer
     """
-    print("🚀 Starting Sentiment Analysis System")
+    print("Starting Sentiment Analysis System")
     print("=" * 60)
     
     # Initialize analyzer
     analyzer = SentimentAnalyzer()
     
     # Display model information
-    print("\n📊 Model Information:")
+    print("\nModel Information:")
     model_info = analyzer.get_model_info()
     for component, info in model_info['components'].items():
-        status = "✅ Loaded" if info['loaded'] else "❌ Not loaded"
+        status = "Loaded" if info['loaded'] else "Not loaded"
         print(f"   {component}: {status}")
         if info['loaded']:
             print(f"      Type: {info['type']}")
@@ -423,7 +423,7 @@ def main():
         "The product is fine, does what it's supposed to do."
     ]
     
-    print(f"\n🔍 Analyzing sentiment of {len(sample_texts)} sample texts:")
+    print(f"\nAnalyzing sentiment of {len(sample_texts)} sample texts:")
     print("-" * 40)
     
     # Analyze each text
@@ -439,22 +439,22 @@ def main():
             confidence = result['confidence']
             
             # Emoji for sentiment
-            emoji = "😊" if sentiment == 'positive' else "😞" if sentiment == 'negative' else "😐"
+            emoji = ":)" if sentiment == 'positive' else ":(" if sentiment == 'negative' else ":|"
             
             print(f"   {emoji} Sentiment: {sentiment.upper()}")
-            print(f"   🎯 Confidence: {confidence:.3f} ({confidence*100:.1f}%)")
+            print(f"   Confidence: {confidence:.3f} ({confidence*100:.1f}%)")
             
             # Show probabilities
             probs = result['probabilities']
-            print(f"   📊 Probabilities: Pos:{probs['positive']:.2f} | Neu:{probs['neutral']:.2f} | Neg:{probs['negative']:.2f}")
+            print(f"   Probabilities: Pos:{probs['positive']:.2f} | Neu:{probs['neutral']:.2f} | Neg:{probs['negative']:.2f}")
         else:
-            print(f"   ❌ Error: {result['error']}")
+            print(f"   Error: {result['error']}")
     
     # Export results
     export_path = analyzer.export_results(results)
     
-    print(f"\n✅ Sentiment analysis complete!")
-    print(f"📄 Detailed results saved to: {export_path}")
+    print(f"\nSentiment analysis complete!")
+    print(f"Detailed results saved to: {export_path}")
     print("\n" + "=" * 60)
 
 
