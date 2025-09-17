@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Semantic Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #ecf0f1;
+            border-radius: 10px;
+            font-size: 1em;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .results-section {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3498db;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .sentiment-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .sentiment-positive {
+            background: #27ae60;
+        }
+
+        .sentiment-negative {
+            background: #e74c3c;
+        }
+
+        .sentiment-neutral {
+            background: #95a5a6;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.5s ease;
+        }
+
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .insight-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #ecf0f1;
+        }
+
+        .insight-value {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .insight-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { color: rgba(0,0,0,0); text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            40% { color: #7f8c8d; text-shadow: .25em 0 0 rgba(0,0,0,0), .5em 0 0 rgba(0,0,0,0); }
+            60% { text-shadow: .25em 0 0 #7f8c8d, .5em 0 0 rgba(0,0,0,0); }
+            80%, 100% { text-shadow: .25em 0 0 #7f8c8d, .5em 0 0 #7f8c8d; }
+        }
+
+        .error {
+            background: #ffeaea;
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+            margin: 10px 0;
+        }
+
+        .success {
+            background: #eafaf1;
+            color: #27ae60;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #27ae60;
+            margin: 10px 0;
+        }
+
+        .batch-input {
+            margin-bottom: 15px;
+        }
+
+        .batch-text {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .model-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-loaded {
+            background: #27ae60;
+        }
+
+        .status-not-loaded {
+            background: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>😊😐😞 Sentiment Analysis System</h1>
+            <p>AI-powered sentiment classification: Positive, Negative, or Neutral</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('single')">Single Text Analysis</button>
+                <button class="tab" onclick="showTab('batch')">Batch Analysis</button>
+                <button class="tab" onclick="showTab('model')">Model Information</button>
+            </div>
+
+            <!-- Single Text Analysis Tab -->
+            <div id="single-tab" class="tab-content active">
+                <div class="input-section">
+                    <label for="text-input">Enter text to analyze sentiment:</label>
+                    <textarea id="text-input" class="text-input" 
+                              placeholder="Type or paste your text here to determine if it's positive, negative, or neutral..."></textarea>
+                </div>
+                
+                <button class="btn" onclick="analyzeSingle()">🔍 Analyze Sentiment</button>
+                <button class="btn btn-secondary" onclick="clearSingleResults()">🗑️ Clear Results</button>
+                
+                <div id="single-results" class="results-section"></div>
+            </div>
+
+            <!-- Batch Analysis Tab -->
+            <div id="batch-tab" class="tab-content">
+                <div class="input-section">
+                    <label>Enter multiple texts for sentiment analysis (one per line):</label>
+                    <div id="batch-inputs">
+                        <textarea class="batch-text" placeholder="Enter first text here..."></textarea>
+                        <textarea class="batch-text" placeholder="Enter second text here..."></textarea>
+                    </div>
+                    <button class="btn btn-secondary" onclick="addBatchInput()">➕ Add Another Text</button>
+                </div>
+                
+                <button class="btn" onclick="analyzeBatch()">🔍 Analyze All Sentiments</button>
+                <button class="btn btn-secondary" onclick="clearBatchResults()">🗑️ Clear Results</button>
+                <button class="btn btn-secondary" onclick="exportResults()">💾 Export Results</button>
+                
+                <div id="batch-results" class="results-section"></div>
+            </div>
+
+            <!-- Model Information Tab -->
+            <div id="model-tab" class="tab-content">
+                <button class="btn" onclick="loadModelInfo()">🔄 Refresh Model Info</button>
+                <div id="model-info" class="model-info"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let batchResults = [];
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function analyzeSingle() {
+            const text = document.getElementById('text-input').value.trim();
+            const resultsDiv = document.getElementById('single-results');
+
+            if (!text) {
+                resultsDiv.innerHTML = '<div class="error">Please enter some text to analyze.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Analyzing text</div>';
+
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ text: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                } else {
+                    resultsDiv.innerHTML = formatSingleResult(data);
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            });
+        }
+
+        function analyzeBatch() {
+            const textareas = document.querySelectorAll('.batch-text');
+            const texts = Array.from(textareas)
+                .map(textarea => textarea.value.trim())
+                .filter(text => text !== '');
+
+            const resultsDiv = document.getElementById('batch-results');
+
+            if (texts.length === 0) {
+                resultsDiv.innerHTML = '<div class="error">Please enter at least one text to analyze.</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Analyzing texts</div>';
+
+            fetch('/batch_analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ texts: texts })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    resultsDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                } else {
+                    batchResults = data.results;
+                    resultsDiv.innerHTML = formatBatchResults(data.results);
+                }
+            })
+            .catch(error => {
+                resultsDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            });
+        }
+
+        function loadModelInfo() {
+            const infoDiv = document.getElementById('model-info');
+            infoDiv.innerHTML = '<div class="loading">Loading model information</div>';
+
+            fetch('/model_info')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    infoDiv.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                } else {
+                    infoDiv.innerHTML = formatModelInfo(data);
+                }
+            })
+            .catch(error => {
+                infoDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            });
+        }
+
+        function addBatchInput() {
+            const container = document.getElementById('batch-inputs');
+            const textarea = document.createElement('textarea');
+            textarea.className = 'batch-text';
+            textarea.placeholder = 'Enter text here...';
+            container.appendChild(textarea);
+        }
+
+        function clearSingleResults() {
+            document.getElementById('single-results').innerHTML = '';
+            document.getElementById('text-input').value = '';
+        }
+
+        function clearBatchResults() {
+            document.getElementById('batch-results').innerHTML = '';
+            document.querySelectorAll('.batch-text').forEach(textarea => {
+                textarea.value = '';
+            });
+            batchResults = [];
+        }
+
+        function exportResults() {
+            if (batchResults.length === 0) {
+                alert('No results to export. Please run batch analysis first.');
+                return;
+            }
+
+            const filename = prompt('Enter filename (optional):');
+            
+            fetch('/export_results', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    results: batchResults,
+                    filename: filename 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                } else {
+                    alert(`Results exported successfully to: ${data.file_path}`);
+                }
+            })
+            .catch(error => {
+                alert(`Error: ${error.message}`);
+            });
+        }
+
+        function formatSingleResult(data) {
+            let html = '<div class="result-card">';
+            
+            // Header
+            html += '<div class="result-header">';
+            html += `<h3>Sentiment Analysis Result</h3>`;
+            if (data.sentiment) {
+                const sentiment = data.sentiment.toLowerCase();
+                const badgeClass = sentiment === 'positive' ? 'sentiment-positive' :
+                                 sentiment === 'negative' ? 'sentiment-negative' : 'sentiment-neutral';
+                html += `<span class="sentiment-badge ${badgeClass}">${data.sentiment.toUpperCase()}</span>`;
+            }
+            html += '</div>';
+
+            // Original text
+            html += `<p><strong>Text:</strong> "${data.original_text}"</p>`;
+
+            // Confidence
+            if (data.confidence) {
+                html += `<div><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%</div>`;
+                html += `<div class="confidence-bar">
+                    <div class="confidence-fill" style="width: ${data.confidence * 100}%"></div>
+                </div>`;
+            }
+
+            // Probability distribution
+            if (data.probabilities) {
+                html += '<h4>Sentiment Probabilities:</h4>';
+                html += '<div class="insights-grid">';
+                for (const [sentiment, prob] of Object.entries(data.probabilities)) {
+                    const emoji = sentiment === 'positive' ? '😊' : sentiment === 'negative' ? '😞' : '😐';
+                    html += `<div class="insight-item">
+                        <div class="insight-value">${emoji}</div>
+                        <div class="insight-label">${sentiment.toUpperCase()}</div>
+                        <div style="font-size: 0.9em; color: #3498db;">${(prob * 100).toFixed(1)}%</div>
+                    </div>`;
+                }
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function formatBatchResults(results) {
+            let html = `<h3>Batch Sentiment Analysis Results (${results.length} texts)</h3>`;
+            
+            // Summary statistics
+            let positive = 0, negative = 0, neutral = 0;
+            results.forEach(result => {
+                if (result.sentiment) {
+                    const sentiment = result.sentiment.toLowerCase();
+                    if (sentiment === 'positive') positive++;
+                    else if (sentiment === 'negative') negative++;
+                    else neutral++;
+                }
+            });
+            
+            html += `<div class="insights-grid" style="margin-bottom: 20px;">
+                <div class="insight-item">
+                    <div class="insight-value">😊 ${positive}</div>
+                    <div class="insight-label">Positive</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">😐 ${neutral}</div>
+                    <div class="insight-label">Neutral</div>
+                </div>
+                <div class="insight-item">
+                    <div class="insight-value">😞 ${negative}</div>
+                    <div class="insight-label">Negative</div>
+                </div>
+            </div>`;
+            
+            results.forEach((result, index) => {
+                html += `<div class="result-card">`;
+                html += `<div class="result-header">`;
+                html += `<h4>Text ${index + 1}</h4>`;
+                if (result.sentiment) {
+                    const sentiment = result.sentiment.toLowerCase();
+                    const badgeClass = sentiment === 'positive' ? 'sentiment-positive' :
+                                     sentiment === 'negative' ? 'sentiment-negative' : 'sentiment-neutral';
+                    html += `<span class="sentiment-badge ${badgeClass}">${result.sentiment.toUpperCase()}</span>`;
+                }
+                html += `</div>`;
+                
+                html += `<p><strong>Text:</strong> "${result.original_text.substring(0, 100)}${result.original_text.length > 100 ? '...' : ''}"</p>`;
+                
+                if (result.confidence) {
+                    html += `<div><strong>Confidence:</strong> ${(result.confidence * 100).toFixed(1)}%</div>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            return html;
+        }
+
+        function formatModelInfo(data) {
+            let html = '<h3>Model Components</h3>';
+            
+            for (const [component, info] of Object.entries(data.components)) {
+                const statusClass = info.loaded ? 'status-loaded' : 'status-not-loaded';
+                const statusText = info.loaded ? 'Loaded' : 'Not Loaded';
+                
+                html += `<div style="margin-bottom: 15px;">`;
+                html += `<div><span class="status-indicator ${statusClass}"></span><strong>${component}:</strong> ${statusText}</div>`;
+                
+                if (info.loaded) {
+                    html += `<div style="margin-left: 20px; color: #7f8c8d;">Type: ${info.type}</div>`;
+                    if (info.classes) {
+                        html += `<div style="margin-left: 20px; color: #7f8c8d;">Classes: ${info.classes.join(', ')}</div>`;
+                    }
+                    if (info.shape) {
+                        html += `<div style="margin-left: 20px; color: #7f8c8d;">Shape: ${info.shape}</div>`;
+                    }
+                }
+                html += `</div>`;
+            }
+            
+            html += `<div style="margin-top: 20px; padding: 10px; background: #ecf0f1; border-radius: 5px;">`;
+            html += `<strong>Model Directory:</strong> ${data.model_directory}<br>`;
+            html += `<strong>Last Updated:</strong> ${new Date(data.timestamp).toLocaleString()}`;
+            html += `</div>`;
+            
+            return html;
+        }
+
+        // Load model info on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadModelInfo();
+        });
+    </script>
+</body>
+</html>
